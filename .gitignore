@@ -1,0 +1,62 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Logs
+logs/
+*.log
+logs/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor configs
+.vscode/
+.idea/
+*.swp
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Firebase / Vercel / Render related (optional)
+.firebase/
+.vercel/
+.cache/
+
+# Coverage reports from tests
+coverage/
+
+# Debug output
+*.stackdump
+
+# Mac system files
+.AppleDouble
+.LSOverride
+
+# Windows system files
+desktop.ini
+
+# MongoDB memory server (if ever used)
+**/mongodb-memory-server*
+
+# Local environment data
+.env.*
