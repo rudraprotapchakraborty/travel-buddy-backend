@@ -1,0 +1,426 @@
+{
+  "info": {
+    "name": "Travel Buddy Backend",
+    "_postman_id": "8c7a8c3b-2c4c-4c1e-9a22-000000000001",
+    "description": "Postman collection for Travel Buddy & Meetup backend (Express + MongoDB).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/register",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"user1@example.com\", \"password\": \"password123\", \"fullName\": \"User One\" }"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"user1@example.com\", \"password\": \"password123\" }"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Me (Self Profile)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/users/me/self"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Me (Self Profile)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/users/me/self",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"I love solo travel and photography\",\n  \"profileImageUrl\": \"https://example.com/avatar.png\",\n  \"travelInterests\": [\"hiking\", \"food tours\", \"photography\"],\n  \"visitedCountries\": [\"India\", \"Nepal\"],\n  \"currentLocation\": \"Kolkata, India\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/users/{{userId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - List Users (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/users?page=1&limit=20"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin - Change User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/users/{{userId}}/role",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"role\": \"ADMIN\" }"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Travel Plans",
+      "item": [
+        {
+          "name": "Create Travel Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/travel-plans",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"Bangkok, Thailand\",\n  \"startDate\": \"2025-01-10\",\n  \"endDate\": \"2025-01-20\",\n  \"budgetMin\": 300,\n  \"budgetMax\": 800,\n  \"travelType\": \"SOLO\",\n  \"description\": \"Street food, temples, and night markets\",\n  \"isPublic\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Travel Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/travel-plans/me"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Travel Plan by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/travel-plans/{{planId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Travel Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/travel-plans/{{planId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"Bangkok & Islands\",\n  \"status\": \"PLANNED\",\n  \"description\": \"Updated: visit nearby islands too\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Travel Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/travel-plans/{{planId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Search & Match Travel Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/travel-plans/match?destination=Bangkok&startDate=2025-01-01&endDate=2025-01-31&travelType=SOLO"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Join Requests",
+      "item": [
+        {
+          "name": "Create Join Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/join-requests",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"travelPlanId\": \"{{planId}}\",\n  \"message\": \"Hey, your trip sounds awesome. Can I join?\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Join Requests (as requester)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/join-requests/me"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Incoming Join Requests (as host)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/join-requests/host"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Join Request Status (host only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/join-requests/{{joinRequestId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"ACCEPTED\" }"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"revieweeId\": \"{{revieweeUserId}}\",\n  \"rating\": 5,\n  \"comment\": \"Great travel buddy, very organized!\",\n  \"travelPlanId\": \"{{planId}}\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/reviews/{{reviewId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Still awesome, but flights were delayed 😄\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/api/reviews/{{reviewId}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create Payment Intent (Subscription)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/payments/create-intent",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"plan\": \"MONTHLY\" }"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stripe Webhook (test manually)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/payments/webhook",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_123\",\n      \"metadata\": { \"userId\": \"{{userId}}\", \"plan\": \"MONTHLY\" }\n    }\n  }\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Overview Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/admin/overview"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "planId",
+      "value": ""
+    },
+    {
+      "key": "joinRequestId",
+      "value": ""
+    },
+    {
+      "key": "reviewId",
+      "value": ""
+    },
+    {
+      "key": "revieweeUserId",
+      "value": ""
+    }
+  ]
+}

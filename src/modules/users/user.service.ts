@@ -1,4 +1,5 @@
 import { User } from "../../models/User";
+import { HttpException } from "../../core/http-exception";
 
 export class UserService {
   static async getById(id: string) {
@@ -41,5 +42,45 @@ export class UserService {
       { role },
       { new: true }
     ).select("-password");
+  }
+
+  // ✅ NEW: generic admin update for Manage Users page
+  static async adminUpdateUser(
+    userId: string,
+    payload: Partial<{
+      role: "USER" | "ADMIN";
+      isBlocked: boolean;
+      verified: boolean;
+    }>
+  ) {
+    const update: any = {};
+
+    if (payload.role) update.role = payload.role;
+    if (typeof payload.isBlocked === "boolean") {
+      update.isBlocked = payload.isBlocked;
+    }
+    if (typeof payload.verified === "boolean") {
+      update.verified = payload.verified;
+    }
+
+    const user = await User.findByIdAndUpdate(userId, update, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    if (!user) {
+      throw new HttpException(404, "User not found");
+    }
+
+    return user;
+  }
+
+  // ✅ NEW: admin delete (hard delete; switch to soft if you want)
+  static async adminDeleteUser(userId: string): Promise<void> {
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      throw new HttpException(404, "User not found");
+    }
   }
 }

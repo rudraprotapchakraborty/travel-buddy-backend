@@ -16,6 +16,9 @@ export interface IUser extends Document {
   role: UserRole;
   avgRating: number;
   reviewCount: number;
+
+  isBlocked: boolean; 
+
   isVerified: boolean;
   subscriptionStatus: SubscriptionStatus;
   subscriptionPlan?: "MONTHLY" | "YEARLY";
@@ -23,6 +26,7 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 const userSchema = new Schema<IUser>(
   {
@@ -37,6 +41,9 @@ const userSchema = new Schema<IUser>(
     role: { type: String, enum: ["USER", "ADMIN"], default: "USER" },
     avgRating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
+
+    isBlocked: { type: Boolean, default: false },
+
     isVerified: { type: Boolean, default: false },
     subscriptionStatus: {
       type: String,
@@ -52,5 +59,6 @@ const userSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
+
 
 export const User = model<IUser>("User", userSchema);

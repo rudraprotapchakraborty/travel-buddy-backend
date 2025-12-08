@@ -35,4 +35,19 @@ export class UserController {
     );
     res.json({ success: true, data: updated });
   }
+
+  // ✅ NEW: Admin generic update (role, isBlocked, verified, etc.)
+  static async adminUpdateUser(req: AuthRequest, res: Response) {
+    const updated = await UserService.adminUpdateUser(
+      req.params.userId,
+      req.body // { role?, isBlocked?, verified? }
+    );
+    res.json({ success: true, data: updated });
+  }
+
+  // ✅ NEW: Admin delete user
+  static async adminDeleteUser(req: AuthRequest, res: Response) {
+    await UserService.adminDeleteUser(req.params.userId);
+    res.json({ success: true, message: "User deleted successfully" });
+  }
 }
