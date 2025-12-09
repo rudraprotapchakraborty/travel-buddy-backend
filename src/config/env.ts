@@ -9,4 +9,5 @@ export const env = {
   JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || "",
   CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || undefined,
 };
