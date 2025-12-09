@@ -12,7 +12,13 @@ export class ReviewController {
         throw new HttpException(400, "Cannot review yourself");
       }
 
-      const review = await ReviewService.create(reviewerId, revieweeId, rating, comment, travelPlanId);
+      const review = await ReviewService.create(
+        reviewerId,
+        revieweeId,
+        rating,
+        comment,
+        travelPlanId
+      );
       res.status(201).json({ success: true, data: review });
     } catch (err) {
       next(err);
@@ -22,8 +28,30 @@ export class ReviewController {
   static async updateReview(req: Request, res: Response, next: NextFunction) {
     try {
       const { rating, comment } = req.body;
-      const updated = await ReviewService.update((req as any).user!.id, req.params.id, rating, comment);
-      if (!updated) throw new HttpException(404, "Review not found or not owned");
+      const user = (req as any).user!;
+      const isAdmin = String(user.role || "").toUpperCase() === "ADMIN";
+
+      // Expect ReviewService.update to accept (requesterId, reviewId, rating, comment, isAdmin)
+      // and to return:
+      // - the updated review on success,
+      // - false if found but not allowed (forbidden),
+      // - null if not found.
+      const updated = await ReviewService.update(
+        user.id,
+        req.params.id,
+        rating,
+        comment,
+        isAdmin
+      );
+
+      if (updated === null) {
+        throw new HttpException(404, "Review not found");
+      }
+
+      if (updated === false) {
+        throw new HttpException(403, "Forbidden: you do not have permission to update this review");
+      }
+
       res.json({ success: true, data: updated });
     } catch (err) {
       next(err);
@@ -32,8 +60,24 @@ export class ReviewController {
 
   static async deleteReview(req: Request, res: Response, next: NextFunction) {
     try {
-      const removed = await ReviewService.remove((req as any).user!.id, req.params.id);
-      if (!removed) throw new HttpException(404, "Review not found or not owned");
+      const user = (req as any).user!;
+      const isAdmin = String(user.role || "").toUpperCase() === "ADMIN";
+
+      // Expect ReviewService.remove to accept (requesterId, reviewId, isAdmin)
+      // and to return:
+      // - true if deleted,
+      // - false if found but forbidden,
+      // - null if not found.
+      const removed = await ReviewService.remove(user.id, req.params.id, isAdmin);
+
+      if (removed === null) {
+        throw new HttpException(404, "Review not found");
+      }
+
+      if (removed === false) {
+        throw new HttpException(403, "Forbidden: you do not have permission to delete this review");
+      }
+
       res.json({ success: true });
     } catch (err) {
       next(err);

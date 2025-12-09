@@ -1,9 +1,17 @@
 import { Review } from "../../models/Review";
 import { Types } from "mongoose";
-import { HttpException } from "../../core/http-exception";
 
 export class ReviewService {
-  static async create(reviewerId: string, revieweeId: string, rating: number, comment?: string, travelPlanId?: string) {
+  /**
+   * Create a new review and recalculate the reviewee's rating.
+   */
+  static async create(
+    reviewerId: string,
+    revieweeId: string,
+    rating: number,
+    comment?: string,
+    travelPlanId?: string
+  ) {
     const review = await Review.create({
       reviewer: new Types.ObjectId(reviewerId),
       reviewee: new Types.ObjectId(revieweeId),
@@ -11,14 +19,36 @@ export class ReviewService {
       comment,
       travelPlan: travelPlanId ? new Types.ObjectId(travelPlanId) : undefined,
     });
-    // recalc avg rating, reviewCount etc. (your existing function)
+
+    // recalc avg rating, reviewCount etc.
     await this.recalculateRating(revieweeId);
     return review;
   }
 
-  static async update(reviewerId: string, reviewId: string, rating?: number, comment?: string) {
+  /**
+   * Update a review.
+   *
+   * Return values:
+   * - the updated review on success
+   * - `false` if the review was found but the requester is not allowed (forbidden)
+   * - `null` if the review was not found
+   *
+   * `isAdmin` allows admins to update any review.
+   */
+  static async update(
+    requesterId: string,
+    reviewId: string,
+    rating?: number,
+    comment?: string,
+    isAdmin = false
+  ) {
     const review = await Review.findById(reviewId);
-    if (!review || review.reviewer.toString() !== reviewerId) return null;
+    if (!review) return null;
+
+    // allow update if owner OR admin
+    if (review.reviewer.toString() !== requesterId && !isAdmin) {
+      return false;
+    }
 
     if (rating != null) review.rating = rating;
     if (comment != null) review.comment = comment;
@@ -29,9 +59,24 @@ export class ReviewService {
     return review;
   }
 
-  static async remove(reviewerId: string, reviewId: string) {
+  /**
+   * Remove a review.
+   *
+   * Return values:
+   * - `true` if deleted
+   * - `false` if found but requester is not allowed (forbidden)
+   * - `null` if not found
+   *
+   * `isAdmin` allows admins to delete any review.
+   */
+  static async remove(requesterId: string, reviewId: string, isAdmin = false) {
     const review = await Review.findById(reviewId);
-    if (!review || review.reviewer.toString() !== reviewerId) return null;
+    if (!review) return null;
+
+    // allow delete if owner OR admin
+    if (review.reviewer.toString() !== requesterId && !isAdmin) {
+      return false;
+    }
 
     const revieweeId = review.reviewee.toString();
     await review.deleteOne();
@@ -39,20 +84,30 @@ export class ReviewService {
     return true;
   }
 
-  // NEW: list / query reviews
-  static async list(filters: { revieweeId?: string; reviewerId?: string; travelPlanId?: string } = {}) {
+  /**
+   * List reviews with optional filters.
+   * Filters: { revieweeId?, reviewerId?, travelPlanId? }
+   *
+   * Returns an array (may be empty). Reviewer is populated with basic info.
+   */
+  static async list(
+    filters: { revieweeId?: string; reviewerId?: string; travelPlanId?: string } = {}
+  ) {
     const query: any = {};
 
     if (filters.revieweeId) query.reviewee = new Types.ObjectId(filters.revieweeId);
     if (filters.reviewerId) query.reviewer = new Types.ObjectId(filters.reviewerId);
     if (filters.travelPlanId) query.travelPlan = new Types.ObjectId(filters.travelPlanId);
 
-    // Sort newest first
+    // Sort newest first and populate reviewer summary
     return Review.find(query)
       .sort({ createdAt: -1 })
       .populate({ path: "reviewer", select: "fullName profileImageUrl" });
   }
 
+  /**
+   * Recalculate average rating & review count for a user and persist on User model.
+   */
   private static async recalculateRating(userId: string) {
     const agg = await Review.aggregate([
       { $match: { reviewee: new Types.ObjectId(userId) } },

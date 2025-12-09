@@ -6,13 +6,37 @@ import { createReviewSchema, updateReviewSchema } from "./review.types";
 
 const router = Router();
 
-// Public read: you can allow reading without auth if you prefer
-// If you want only authenticated users to read, use authMiddleware here
+/**
+ * GET /api/reviews
+ *
+ * Public read access by default:
+ * - Allows filtering by revieweeId, reviewerId, travelPlanId via query params.
+ * - Returns an array (empty if no matches).
+ *
+ * If you prefer to require authentication for reading reviews, uncomment `authMiddleware`
+ * below so only authenticated users can list reviews.
+ */
 router.get("/", /* authMiddleware, */ ReviewController.listReviews);
 
-// protected write operations
-router.post("/", authMiddleware, validateRequest(createReviewSchema), ReviewController.addReview);
-router.patch("/:id", authMiddleware, validateRequest(updateReviewSchema), ReviewController.updateReview);
+// Protected write operations — require authentication
+router.post(
+  "/",
+  authMiddleware,
+  validateRequest(createReviewSchema),
+  ReviewController.addReview
+);
+
+// Update: only the owner or an admin may update a review.
+// authMiddleware ensures req.user is populated; controller handles isAdmin check.
+router.patch(
+  "/:id",
+  authMiddleware,
+  validateRequest(updateReviewSchema),
+  ReviewController.updateReview
+);
+
+// Delete: only the owner or an admin may delete a review.
+// authMiddleware ensures req.user is populated; controller handles isAdmin check.
 router.delete("/:id", authMiddleware, ReviewController.deleteReview);
 
 export default router;
