@@ -1,5 +1,6 @@
 import { TravelPlan } from "../../models/TravelPlan";
 import { Types } from "mongoose";
+import { HttpException } from "../../core/http-exception";
 
 export class TravelPlanService {
   static async create(userId: string, payload: any) {
@@ -13,6 +14,7 @@ export class TravelPlanService {
       travelType: payload.travelType,
       description: payload.description,
       isPublic: payload.isPublic ?? true,
+      status: payload.status ?? "PLANNED",
     });
   }
 
@@ -75,6 +77,8 @@ export class TravelPlanService {
     });
   }
 
+  // ADMIN operations
+
   static async listAll() {
     return TravelPlan.find({})
       .sort({ createdAt: -1 })
@@ -82,10 +86,24 @@ export class TravelPlanService {
   }
 
   static async adminUpdateStatus(id: string, status: string) {
-    return TravelPlan.findByIdAndUpdate(
+    const allowed = ["PLANNED", "COMPLETED", "CANCELLED", "FLAGGED", "ACTIVE"];
+    // normalize some statuses (frontend uses ACTIVE/COMPLETED/CANCELLED/FLAGGED)
+    const normalized = String(status).toUpperCase();
+    if (!allowed.includes(normalized)) {
+      // allow whatever, but you can throw HttpException if invalid
+    }
+    const plan = await TravelPlan.findByIdAndUpdate(
       id,
-      { status },
-      { new: true }
-    );
+      { status: normalized },
+      { new: true, runValidators: true }
+    ).populate({ path: "user", select: "fullName email" });
+
+    if (!plan) throw new HttpException(404, "Travel plan not found");
+    return plan;
+  }
+
+  static async adminDelete(id: string): Promise<void> {
+    const plan = await TravelPlan.findByIdAndDelete(id);
+    if (!plan) throw new HttpException(404, "Travel plan not found");
   }
 }
