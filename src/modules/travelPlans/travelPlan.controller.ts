@@ -2,6 +2,17 @@ import { Response } from "express";
 import { AuthRequest } from "../../core/auth-middleware";
 import { TravelPlanService } from "./travelPlan.service";
 import { HttpException } from "../../core/http-exception";
+import { TravelPlan } from "../../models/TravelPlan";
+import { User } from "../../models/User";
+
+const assertDemoPlanScope = async (req: AuthRequest, planId: string) => {
+  if (!req.user?.isDemo) return;
+  const plan = await TravelPlan.findById(planId).select("user");
+  const owner = plan && (await User.findById(plan.user).select("isDemo"));
+  if (!owner?.isDemo) {
+    throw new HttpException(403, "Test accounts can only manage test data.");
+  }
+};
 
 const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
 
@@ -65,6 +76,7 @@ export class TravelPlanController {
   }
 
   static async updateStatusAdmin(req: AuthRequest, res: Response) {
+    await assertDemoPlanScope(req, req.params.id as string);
     const updated = await TravelPlanService.adminUpdateStatus(
       req.params.id as string,
       req.body.status
@@ -73,6 +85,7 @@ export class TravelPlanController {
   }
 
   static async adminDelete(req: AuthRequest, res: Response) {
+    await assertDemoPlanScope(req, req.params.id as string);
     await TravelPlanService.adminDelete(req.params.id as string);
     res.json({ success: true, message: "Travel plan deleted successfully" });
   }

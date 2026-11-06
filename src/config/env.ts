@@ -17,6 +17,9 @@ export const env = {
   isProduction,
   PORT: Number(process.env.PORT) || 5000,
   MONGODB_URI: required("MONGODB_URI"),
+  // Own database, so Travel Buddy never shares collections (or their indexes)
+  // with other apps on the same cluster.
+  MONGODB_DB: process.env.MONGODB_DB || "travel_buddy",
   JWT_ACCESS_SECRET: required("JWT_ACCESS_SECRET"),
   JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
   STRIPE_SECRET_KEY: required("STRIPE_SECRET_KEY"),

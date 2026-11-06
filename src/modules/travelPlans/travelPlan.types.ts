@@ -23,7 +23,7 @@ export const createPlanSchema = z.object({
       endDate: date,
       budgetMin: budget.optional(),
       budgetMax: budget.optional(),
-      travelType: z.enum(["SOLO", "FAMILY", "FRIENDS"]),
+      travelType: z.enum(["SOLO", "COUPLE", "FAMILY", "FRIENDS"]),
       description: z.string().trim().max(1000).optional(),
       isPublic: z.boolean().optional(),
     })
@@ -45,7 +45,7 @@ export const updatePlanSchema = z.object({
     endDate: date.optional(),
     budgetMin: budget.optional(),
     budgetMax: budget.optional(),
-    travelType: z.enum(["SOLO", "FAMILY", "FRIENDS"]).optional(),
+    travelType: z.enum(["SOLO", "COUPLE", "FAMILY", "FRIENDS"]).optional(),
     description: z.string().trim().max(1000).optional(),
     isPublic: z.boolean().optional(),
     status: z.enum(["PLANNED", "COMPLETED", "CANCELLED"]).optional(),

@@ -2,12 +2,10 @@ import { Response } from "express";
 import { AuthRequest } from "../../core/auth-middleware";
 import { HttpException } from "../../core/http-exception";
 import { User } from "../../models/User";
-import { TravelPlan } from "../../models/TravelPlan";
-import { JoinRequest } from "../../models/JoinRequest";
-import { Review } from "../../models/Review";
 import { consumeOtp, issueOtp } from "../../utils/otp";
 import { comparePassword, hashPassword } from "../../utils/password";
-import { ReviewService } from "../reviews/review.service";
+import { deleteUserAndContent } from "./user.cleanup";
+import { assertNotDemo } from "../../config/demo";
 
 const loadWithPassword = async (id: string) => {
   const user = await User.findById(id).select("+password");
@@ -33,6 +31,7 @@ export class AccountController {
 
   /** Changes the password, or sets one for a Google-only account. */
   static async changePassword(req: AuthRequest, res: Response) {
+    assertNotDemo(req.user, "change the password");
     const { currentPassword, newPassword } = req.body;
     const user = await loadWithPassword(req.user!.id);
 
@@ -51,6 +50,7 @@ export class AccountController {
 
   /** Step 1: send a code to the new address (needs the current password). */
   static async requestEmailChange(req: AuthRequest, res: Response) {
+    assertNotDemo(req.user, "change the email");
     const { email, currentPassword } = req.body;
     const user = await loadWithPassword(req.user!.id);
 
@@ -77,6 +77,7 @@ export class AccountController {
 
   /** Step 2: confirm the code and switch the address. */
   static async confirmEmailChange(req: AuthRequest, res: Response) {
+    assertNotDemo(req.user, "change the email");
     const { email, code } = req.body;
     const user = await loadWithPassword(req.user!.id);
 
@@ -97,6 +98,7 @@ export class AccountController {
 
   /** Deletes the account and its content. Confirmed by typing the email. */
   static async deleteAccount(req: AuthRequest, res: Response) {
+    assertNotDemo(req.user, "be deleted");
     const user = await loadWithPassword(req.user!.id);
 
     if ((req.body.confirmEmail as string).trim().toLowerCase() !== user.email) {
@@ -112,22 +114,7 @@ export class AccountController {
       );
     }
 
-    const reviewedUsers = await Review.distinct("reviewee", {
-      reviewer: user._id,
-    });
-    await Promise.all([
-      TravelPlan.deleteMany({ user: user._id }),
-      JoinRequest.deleteMany({
-        $or: [{ requester: user._id }, { host: user._id }],
-      }),
-      Review.deleteMany({
-        $or: [{ reviewer: user._id }, { reviewee: user._id }],
-      }),
-    ]);
-    await user.deleteOne();
-    await Promise.all(
-      reviewedUsers.map((id) => ReviewService.recalculateRating(String(id)))
-    );
+    await deleteUserAndContent(user);
 
     res.json({ success: true, message: "Account deleted" });
   }

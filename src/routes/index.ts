@@ -7,6 +7,7 @@ import joinRequestRoutes from "../modules/joinRequests/joinRequest.routes";
 import paymentRoutes from "../modules/payments/payment.routes";
 import adminRoutes from "../modules/admin/admin.routes";
 import uploadRoutes from "../modules/uploads/upload.routes";
+import publicRoutes from "../modules/public/public.routes";
 import { apiLimiter } from "../core/rate-limit";
 
 const router = Router();
@@ -21,5 +22,6 @@ router.use("/join-requests", joinRequestRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/admin", adminRoutes);
 router.use("/uploads", uploadRoutes);
+router.use("/public", publicRoutes);
 
 export default router;

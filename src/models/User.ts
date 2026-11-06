@@ -22,6 +22,8 @@ export interface IUser extends Document {
   isBlocked: boolean; 
 
   isVerified: boolean;
+  /** Shared test account shown on the login page; sign-in details are locked */
+  isDemo: boolean;
   subscriptionStatus: SubscriptionStatus;
   subscriptionPlan?: "MONTHLY" | "YEARLY";
   subscriptionEndAt?: Date;
@@ -50,6 +52,7 @@ const userSchema = new Schema<IUser>(
     isBlocked: { type: Boolean, default: false },
 
     isVerified: { type: Boolean, default: false },
+    isDemo: { type: Boolean, default: false, index: true },
     subscriptionStatus: {
       type: String,
       enum: ["NONE", "ACTIVE", "CANCELLED", "EXPIRED"],

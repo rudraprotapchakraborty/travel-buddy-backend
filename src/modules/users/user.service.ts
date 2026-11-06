@@ -1,5 +1,6 @@
 import { User } from "../../models/User";
 import { HttpException } from "../../core/http-exception";
+import { deleteUserAndContent } from "./user.cleanup";
 
 const PUBLIC_FIELDS =
   "fullName bio profileImageUrl travelInterests visitedCountries currentLocation avgRating reviewCount isVerified createdAt";
@@ -70,7 +71,8 @@ export class UserService {
   }
 
   static async adminDeleteUser(userId: string): Promise<void> {
-    const user = await User.findByIdAndDelete(userId);
+    const user = await User.findById(userId);
     if (!user) throw new HttpException(404, "User not found");
+    await deleteUserAndContent(user);
   }
 }

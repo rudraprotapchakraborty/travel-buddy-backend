@@ -12,6 +12,7 @@ export const connectDB = async () => {
   if (!globalCache.__mongo) {
     globalCache.__mongo = mongoose
       .connect(env.MONGODB_URI, {
+        dbName: env.MONGODB_DB,
         serverSelectionTimeoutMS: 10_000,
         maxPoolSize: 10,
       })

@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from "mongoose";
 
-export type TravelType = "SOLO" | "FAMILY" | "FRIENDS";
+export type TravelType = "SOLO" | "COUPLE" | "FAMILY" | "FRIENDS";
 export type TravelPlanStatus =
   | "PLANNED"
   | "ACTIVE"
@@ -33,7 +33,7 @@ const travelPlanSchema = new Schema<ITravelPlan>(
     budgetMax: Number,
     travelType: {
       type: String,
-      enum: ["SOLO", "FAMILY", "FRIENDS"],
+      enum: ["SOLO", "COUPLE", "FAMILY", "FRIENDS"],
       required: true,
     },
     description: String,

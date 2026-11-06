@@ -32,18 +32,20 @@ export class JoinRequestService {
   }
 
   static async listForUser(userId: string) {
-    return JoinRequest.find({ requester: userId })
+    const list = await JoinRequest.find({ requester: userId })
       .populate("travelPlan")
       .sort({ createdAt: -1 })
       .limit(200);
+    return list.filter((r) => r.travelPlan);
   }
 
   static async listForHost(hostId: string) {
-    return JoinRequest.find({ host: hostId })
+    const list = await JoinRequest.find({ host: hostId })
       .populate("travelPlan")
       .populate("requester", "fullName profileImageUrl avgRating")
       .sort({ createdAt: -1 })
       .limit(200);
+    return list.filter((r) => r.travelPlan && r.requester);
   }
 
   /**

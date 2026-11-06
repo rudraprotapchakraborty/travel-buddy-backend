@@ -6,7 +6,9 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/src/server.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx scripts/seed.ts",
+    "seed:clear": "tsx scripts/seed.ts clear"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

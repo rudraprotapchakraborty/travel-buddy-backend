@@ -14,6 +14,7 @@ import {
 const router = Router();
 router.use(authLimiter);
 
+router.get("/demo-accounts", AuthController.demoAccounts);
 router.post("/register", validateRequest(registerSchema), AuthController.register);
 router.post("/login", validateRequest(loginSchema), AuthController.login);
 router.post("/google", validateRequest(googleLoginSchema), AuthController.google);

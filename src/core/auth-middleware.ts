@@ -4,7 +4,7 @@ import { HttpException } from "./http-exception";
 import { User } from "../models/User";
 
 export interface AuthRequest extends Request {
-  user?: { id: string; role: "USER" | "ADMIN" };
+  user?: { id: string; role: "USER" | "ADMIN"; isDemo: boolean };
 }
 
 /**
@@ -29,12 +29,16 @@ export const authMiddleware = async (
     throw new HttpException(401, "Invalid or expired token");
   }
 
-  const user = await User.findById(payload.userId).select("role isBlocked");
+  const user = await User.findById(payload.userId).select("role isBlocked isDemo");
   if (!user) throw new HttpException(401, "Account no longer exists");
   if (user.isBlocked) {
     throw new HttpException(403, "Your account is blocked. Please contact support.");
   }
 
-  req.user = { id: user._id.toString(), role: user.role };
+  req.user = {
+    id: user._id.toString(),
+    role: user.role,
+    isDemo: Boolean(user.isDemo),
+  };
   next();
 };

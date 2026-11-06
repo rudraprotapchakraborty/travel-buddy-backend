@@ -3,7 +3,7 @@ import { TravelPlan } from "../../models/TravelPlan";
 import { HttpException } from "../../core/http-exception";
 import { escapeRegex } from "../../core/object-id";
 
-const TRAVEL_TYPES = ["SOLO", "FAMILY", "FRIENDS"];
+const TRAVEL_TYPES = ["SOLO", "COUPLE", "FAMILY", "FRIENDS"];
 
 export class TravelPlanService {
   static async create(userId: string, payload: any) {
@@ -31,7 +31,8 @@ export class TravelPlanService {
       path: "user",
       select: "fullName profileImageUrl avgRating",
     });
-    if (!plan) return null;
+    // A plan whose owner no longer exists is treated as gone
+    if (!plan || !plan.user) return null;
 
     const ownerId = (plan.user as any)?._id?.toString() ?? String(plan.user);
     if (!plan.isPublic && ownerId !== viewerId && !isAdmin) return null;
@@ -101,7 +102,7 @@ export class TravelPlanService {
       query.travelType = filters.travelType;
     }
 
-    return TravelPlan.find(query)
+    const plans = await TravelPlan.find(query)
       .sort({ startDate: 1 })
       .limit(100)
       .populate({
@@ -109,15 +110,17 @@ export class TravelPlanService {
         select:
           "fullName profileImageUrl travelInterests avgRating currentLocation",
       });
+    return plans.filter((p) => p.user);
   }
 
   // ---- Admin ----
 
   static async listAll() {
-    return TravelPlan.find({})
+    const plans = await TravelPlan.find({})
       .sort({ createdAt: -1 })
       .limit(500)
       .populate({ path: "user", select: "fullName email" });
+    return plans.filter((p) => p.user);
   }
 
   static async adminUpdateStatus(id: string, status: string) {

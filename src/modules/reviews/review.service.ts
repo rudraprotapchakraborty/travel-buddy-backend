@@ -75,10 +75,11 @@ export class ReviewService {
     if (filters.reviewerId) query.reviewer = new Types.ObjectId(filters.reviewerId);
     if (filters.travelPlanId) query.travelPlan = new Types.ObjectId(filters.travelPlanId);
 
-    return Review.find(query)
+    const reviews = await Review.find(query)
       .sort({ createdAt: -1 })
       .limit(200)
       .populate({ path: "reviewer", select: "fullName profileImageUrl" });
+    return reviews.filter((r) => r.reviewer);
   }
 
   /** Recalculate average rating and review count for a user. */

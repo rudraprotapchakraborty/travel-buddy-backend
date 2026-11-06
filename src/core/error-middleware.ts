@@ -36,9 +36,12 @@ export const errorMiddleware = (
   }
 
   if (err?.code === 11000) {
-    return res
-      .status(409)
-      .json({ success: false, message: "Duplicate value already exists" });
+    console.error("Duplicate key:", err.message);
+    const field = Object.keys(err.keyPattern ?? {})[0];
+    return res.status(409).json({
+      success: false,
+      message: field ? `That ${field} is already in use` : "Duplicate value already exists",
+    });
   }
 
   // Malformed JSON bodies etc. raised by body-parser

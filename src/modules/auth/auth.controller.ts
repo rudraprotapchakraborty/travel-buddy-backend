@@ -6,6 +6,7 @@ import { signAccessToken } from "../../utils/jwt";
 import { HttpException } from "../../core/http-exception";
 import { consumeOtp, issueOtp } from "../../utils/otp";
 import { env } from "../../config/env";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "../../config/demo";
 
 const googleClient = env.GOOGLE_CLIENT_ID
   ? new OAuth2Client(env.GOOGLE_CLIENT_ID)
@@ -20,6 +21,7 @@ export const publicUser = (user: IUser) => ({
   isBlocked: user.isBlocked,
   isVerified: user.isVerified,
   emailVerified: user.emailVerified,
+  isDemo: Boolean(user.isDemo),
 });
 
 const session = (user: IUser) => ({
@@ -32,6 +34,22 @@ const session = (user: IUser) => ({
 const DUMMY_HASH = "$2b$12$C6UzMDM.H6dfI/f/IKcEeO5Qb1y0m8vQx0Kq3lq6W5eYvQ2s4n1jW";
 
 export class AuthController {
+  /** Test accounts for the login page. Empty until the demo data is seeded. */
+  static async demoAccounts(_req: Request, res: Response) {
+    const found = await User.find({
+      email: { $in: DEMO_ACCOUNTS.map((a) => a.email) },
+      isDemo: true,
+    }).select("email");
+    const present = new Set(found.map((u) => u.email));
+    res.json({
+      success: true,
+      data: DEMO_ACCOUNTS.filter((a) => present.has(a.email)).map((a) => ({
+        ...a,
+        password: DEMO_PASSWORD,
+      })),
+    });
+  }
+
   /** Creates the account (unverified) and emails a 6 digit code. */
   static async register(req: Request, res: Response) {
     const { email, password, fullName } = req.body;

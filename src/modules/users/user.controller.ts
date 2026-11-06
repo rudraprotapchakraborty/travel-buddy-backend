@@ -2,6 +2,16 @@ import { Response } from "express";
 import { AuthRequest } from "../../core/auth-middleware";
 import { UserService } from "./user.service";
 import { HttpException } from "../../core/http-exception";
+import { User } from "../../models/User";
+
+/** A demo admin can only manage other demo accounts, never real members. */
+const assertDemoScope = async (req: AuthRequest, targetId: string) => {
+  if (!req.user?.isDemo) return;
+  const target = await User.findById(targetId).select("isDemo");
+  if (!target?.isDemo) {
+    throw new HttpException(403, "Test accounts can only manage test data.");
+  }
+};
 
 const clampInt = (value: unknown, fallback: number, min: number, max: number) => {
   const n = Math.floor(Number(value));
@@ -41,6 +51,7 @@ export class UserController {
 
   static async adminUpdateRole(req: AuthRequest, res: Response) {
     const userId = req.params.userId as string;
+    await assertDemoScope(req, userId);
     if (userId === req.user!.id && req.body.role !== "ADMIN") {
       throw new HttpException(400, "You cannot remove your own admin role");
     }
@@ -52,6 +63,7 @@ export class UserController {
 
   static async adminUpdateUser(req: AuthRequest, res: Response) {
     const userId = req.params.userId as string;
+    await assertDemoScope(req, userId);
     if (
       userId === req.user!.id &&
       (req.body.isBlocked === true ||
@@ -65,6 +77,7 @@ export class UserController {
 
   static async adminDeleteUser(req: AuthRequest, res: Response) {
     const userId = req.params.userId as string;
+    await assertDemoScope(req, userId);
     if (userId === req.user!.id) {
       throw new HttpException(400, "You cannot delete your own account here");
     }
