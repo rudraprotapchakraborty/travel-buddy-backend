@@ -21,7 +21,7 @@ export const env = {
   // with other apps on the same cluster.
   MONGODB_DB: process.env.MONGODB_DB || "travel_buddy",
   JWT_ACCESS_SECRET: required("JWT_ACCESS_SECRET"),
-  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
+  JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "7d",
   STRIPE_SECRET_KEY: required("STRIPE_SECRET_KEY"),
   STRIPE_WEBHOOK_SECRET: isProduction
     ? required("STRIPE_WEBHOOK_SECRET")
