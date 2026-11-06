@@ -42,7 +42,7 @@ export class JoinRequestService {
   static async listForHost(hostId: string) {
     const list = await JoinRequest.find({ host: hostId })
       .populate("travelPlan")
-      .populate("requester", "fullName profileImageUrl avgRating")
+      .populate("requester", "fullName profileImageUrl avgRating currentLocation")
       .sort({ createdAt: -1 })
       .limit(200);
     return list.filter((r) => r.travelPlan && r.requester);

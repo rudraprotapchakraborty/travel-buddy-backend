@@ -50,7 +50,7 @@ const people: Person[] = [
   },
   {
     key: "traveler",
-    email: DEMO_ACCOUNTS[1].email,
+    email: "tariq.rahman@travelbuddy.demo",
     fullName: "Tariq Rahman",
     bio: "Weekend hiker, slow-travel fan and terrible at packing light.",
     location: "Chattogram, Bangladesh",
@@ -60,7 +60,7 @@ const people: Person[] = [
   },
   {
     key: "host",
-    email: DEMO_ACCOUNTS[2].email,
+    email: DEMO_ACCOUNTS[1].email,
     fullName: "Maya Fernandez",
     bio: "I plan trips with spreadsheets and spontaneity in equal parts. Always up for a new travel buddy.",
     location: "Lisbon, Portugal",
@@ -201,6 +201,8 @@ const requests: { plan: string; from: string; status: "PENDING" | "ACCEPTED" | "
   { plan: "Cox's Bazar, Bangladesh", from: "host", status: "PENDING", message: "Visiting family in Dhaka that week. Could I tag along for the weekend?" },
   { plan: "Hanoi to Ho Chi Minh City, Vietnam", from: "kenji", status: "PENDING", message: "I know the northern train routes well and can join for the first week." },
   { plan: "Dolomites, Italy", from: "traveler", status: "PENDING", message: "Intermediate rider, I would love to try via ferrata with a group." },
+  { plan: "Dolomites, Italy", from: "host", status: "PENDING", message: "Strong hiker, intermediate on a road bike. Would love to join for the via ferrata days." },
+  { plan: "Hokkaido Winter, Japan", from: "host", status: "ACCEPTED", message: "I have wanted to see Hokkaido in winter for years. Happy to share a rental car." },
   { plan: "Utah National Parks, USA", from: "noah", status: "ACCEPTED", message: "I can drive part of the way and bring photography gear for sunrise stops." },
 ];
 

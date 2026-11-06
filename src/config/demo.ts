@@ -10,8 +10,7 @@ export const DEMO_PASSWORD = "TravelDemo#2026";
 
 export const DEMO_ACCOUNTS = [
   { role: "ADMIN", label: "Admin", email: "admin@travelbuddy.demo" },
-  { role: "USER", label: "Traveler", email: "traveler@travelbuddy.demo" },
-  { role: "USER", label: "Host", email: "host@travelbuddy.demo" },
+  { role: "USER", label: "User", email: "user@travelbuddy.demo" },
 ] as const;
 
 export const assertNotDemo = (actor: { isDemo?: boolean } | undefined, what: string) => {
