@@ -3,9 +3,20 @@ import { AuthRequest } from "../../core/auth-middleware";
 import { UserService } from "./user.service";
 import { HttpException } from "../../core/http-exception";
 
+const clampInt = (value: unknown, fallback: number, min: number, max: number) => {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(Math.max(n, min), max);
+};
+
 export class UserController {
   static async getProfile(req: AuthRequest, res: Response) {
-    const user = await UserService.getById(req.params.id);
+    // Admins see the full record; everyone else only the public fields
+    const id = req.params.id as string;
+    const user =
+      req.user!.role === "ADMIN" || req.user!.id === id
+        ? await UserService.getById(id)
+        : await UserService.getPublicProfile(id);
     if (!user) throw new HttpException(404, "User not found");
     res.json({ success: true, data: user });
   }
@@ -22,32 +33,42 @@ export class UserController {
   }
 
   static async listUsers(req: AuthRequest, res: Response) {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 20;
+    const page = clampInt(req.query.page, 1, 1, 10_000);
+    const limit = clampInt(req.query.limit, 20, 1, 100);
     const data = await UserService.listUsers(page, limit);
     res.json({ success: true, data });
   }
 
   static async adminUpdateRole(req: AuthRequest, res: Response) {
-    const updated = await UserService.adminUpdateRole(
-      req.params.userId,
-      req.body.role
-    );
+    const userId = req.params.userId as string;
+    if (userId === req.user!.id && req.body.role !== "ADMIN") {
+      throw new HttpException(400, "You cannot remove your own admin role");
+    }
+    const updated = await UserService.adminUpdateUser(userId, {
+      role: req.body.role,
+    });
     res.json({ success: true, data: updated });
   }
 
-  // ✅ NEW: Admin generic update (role, isBlocked, verified, etc.)
   static async adminUpdateUser(req: AuthRequest, res: Response) {
-    const updated = await UserService.adminUpdateUser(
-      req.params.userId,
-      req.body // { role?, isBlocked?, verified? }
-    );
+    const userId = req.params.userId as string;
+    if (
+      userId === req.user!.id &&
+      (req.body.isBlocked === true ||
+        (req.body.role && req.body.role !== "ADMIN"))
+    ) {
+      throw new HttpException(400, "You cannot block or demote yourself");
+    }
+    const updated = await UserService.adminUpdateUser(userId, req.body);
     res.json({ success: true, data: updated });
   }
 
-  // ✅ NEW: Admin delete user
   static async adminDeleteUser(req: AuthRequest, res: Response) {
-    await UserService.adminDeleteUser(req.params.userId);
+    const userId = req.params.userId as string;
+    if (userId === req.user!.id) {
+      throw new HttpException(400, "You cannot delete your own account here");
+    }
+    await UserService.adminDeleteUser(userId);
     res.json({ success: true, message: "User deleted successfully" });
   }
 }

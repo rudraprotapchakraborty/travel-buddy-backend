@@ -1,10 +1,10 @@
-import { Review } from "../../models/Review";
 import { Types } from "mongoose";
+import { Review } from "../../models/Review";
+import { User } from "../../models/User";
+import { HttpException } from "../../core/http-exception";
 
 export class ReviewService {
-  /**
-   * Create a new review and recalculate the reviewee's rating.
-   */
+  /** Create a review and recalculate the reviewee's rating. */
   static async create(
     reviewerId: string,
     revieweeId: string,
@@ -12,6 +12,10 @@ export class ReviewService {
     comment?: string,
     travelPlanId?: string
   ) {
+    if (!(await User.exists({ _id: revieweeId }))) {
+      throw new HttpException(404, "User not found");
+    }
+
     const review = await Review.create({
       reviewer: new Types.ObjectId(reviewerId),
       reviewee: new Types.ObjectId(revieweeId),
@@ -20,20 +24,13 @@ export class ReviewService {
       travelPlan: travelPlanId ? new Types.ObjectId(travelPlanId) : undefined,
     });
 
-    // recalc avg rating, reviewCount etc.
     await this.recalculateRating(revieweeId);
     return review;
   }
 
   /**
-   * Update a review.
-   *
-   * Return values:
-   * - the updated review on success
-   * - `false` if the review was found but the requester is not allowed (forbidden)
-   * - `null` if the review was not found
-   *
-   * `isAdmin` allows admins to update any review.
+   * Returns the updated review, `false` if the requester may not edit it, or
+   * `null` if it does not exist. Admins may edit any review.
    */
   static async update(
     requesterId: string,
@@ -44,11 +41,7 @@ export class ReviewService {
   ) {
     const review = await Review.findById(reviewId);
     if (!review) return null;
-
-    // allow update if owner OR admin
-    if (review.reviewer.toString() !== requesterId && !isAdmin) {
-      return false;
-    }
+    if (review.reviewer.toString() !== requesterId && !isAdmin) return false;
 
     if (rating != null) review.rating = rating;
     if (comment != null) review.comment = comment;
@@ -60,23 +53,13 @@ export class ReviewService {
   }
 
   /**
-   * Remove a review.
-   *
-   * Return values:
-   * - `true` if deleted
-   * - `false` if found but requester is not allowed (forbidden)
-   * - `null` if not found
-   *
-   * `isAdmin` allows admins to delete any review.
+   * Returns `true` if deleted, `false` if the requester may not delete it, or
+   * `null` if it does not exist. Admins may delete any review.
    */
   static async remove(requesterId: string, reviewId: string, isAdmin = false) {
     const review = await Review.findById(reviewId);
     if (!review) return null;
-
-    // allow delete if owner OR admin
-    if (review.reviewer.toString() !== requesterId && !isAdmin) {
-      return false;
-    }
+    if (review.reviewer.toString() !== requesterId && !isAdmin) return false;
 
     const revieweeId = review.reviewee.toString();
     await review.deleteOne();
@@ -84,50 +67,30 @@ export class ReviewService {
     return true;
   }
 
-  /**
-   * List reviews with optional filters.
-   * Filters: { revieweeId?, reviewerId?, travelPlanId? }
-   *
-   * Returns an array (may be empty). Reviewer is populated with basic info.
-   */
   static async list(
     filters: { revieweeId?: string; reviewerId?: string; travelPlanId?: string } = {}
   ) {
-    const query: any = {};
-
+    const query: Record<string, Types.ObjectId> = {};
     if (filters.revieweeId) query.reviewee = new Types.ObjectId(filters.revieweeId);
     if (filters.reviewerId) query.reviewer = new Types.ObjectId(filters.reviewerId);
     if (filters.travelPlanId) query.travelPlan = new Types.ObjectId(filters.travelPlanId);
 
-    // Sort newest first and populate reviewer summary
     return Review.find(query)
       .sort({ createdAt: -1 })
+      .limit(200)
       .populate({ path: "reviewer", select: "fullName profileImageUrl" });
   }
 
-  /**
-   * Recalculate average rating & review count for a user and persist on User model.
-   */
-  private static async recalculateRating(userId: string) {
+  /** Recalculate average rating and review count for a user. */
+  static async recalculateRating(userId: string) {
     const agg = await Review.aggregate([
       { $match: { reviewee: new Types.ObjectId(userId) } },
-      {
-        $group: {
-          _id: "$reviewee",
-          avg: { $avg: "$rating" },
-          count: { $sum: 1 },
-        },
-      },
+      { $group: { _id: "$reviewee", avg: { $avg: "$rating" }, count: { $sum: 1 } } },
     ]);
 
-    const avg = agg[0]?.avg || 0;
-    const count = agg[0]?.count || 0;
-
-    // update on User model (make sure User has these fields)
-    const { User } = require("../../models/User");
     await User.findByIdAndUpdate(userId, {
-      avgRating: avg,
-      reviewCount: count,
+      avgRating: agg[0]?.avg ? Math.round(agg[0].avg * 10) / 10 : 0,
+      reviewCount: agg[0]?.count || 0,
     });
   }
 }

@@ -6,7 +6,9 @@ export type SubscriptionPlan = "MONTHLY" | "YEARLY" | null;
 
 export interface IUser extends Document {
   email: string;
-  password: string;
+  password?: string;
+  googleId?: string;
+  emailVerified: boolean;
   fullName: string;
   bio?: string;
   profileImageUrl?: string;
@@ -30,8 +32,11 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
-    email: { type: String, unique: true, required: true, trim: true },
-    password: { type: String, required: true, select: false },
+    email: { type: String, unique: true, required: true, trim: true, lowercase: true },
+    // Optional: accounts created through Google sign-in have no password
+    password: { type: String, select: false },
+    googleId: { type: String, index: true, sparse: true },
+    emailVerified: { type: Boolean, default: false },
     fullName: { type: String, required: true },
     bio: String,
     profileImageUrl: String,

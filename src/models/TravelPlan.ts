@@ -1,7 +1,12 @@
 import { Schema, model, Document, Types } from "mongoose";
 
 export type TravelType = "SOLO" | "FAMILY" | "FRIENDS";
-export type TravelPlanStatus = "PLANNED" | "COMPLETED" | "CANCELLED";
+export type TravelPlanStatus =
+  | "PLANNED"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "FLAGGED";
 
 export interface ITravelPlan extends Document {
   user: Types.ObjectId;
@@ -35,11 +40,14 @@ const travelPlanSchema = new Schema<ITravelPlan>(
     isPublic: { type: Boolean, default: true },
     status: {
       type: String,
-      enum: ["PLANNED", "COMPLETED", "CANCELLED"],
+      enum: ["PLANNED", "ACTIVE", "COMPLETED", "CANCELLED", "FLAGGED"],
       default: "PLANNED",
     },
   },
   { timestamps: true }
 );
+
+travelPlanSchema.index({ user: 1, startDate: 1 });
+travelPlanSchema.index({ isPublic: 1, status: 1, destination: 1 });
 
 export const TravelPlan = model<ITravelPlan>("TravelPlan", travelPlanSchema);

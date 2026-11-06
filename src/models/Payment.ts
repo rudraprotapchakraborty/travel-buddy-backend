@@ -6,6 +6,7 @@ export interface IPayment extends Document {
   user: Types.ObjectId;
   amount: number;
   currency: string;
+  plan?: "MONTHLY" | "YEARLY";
   stripePaymentIntentId?: string;
   status: PaymentStatus;
   createdAt: Date;
@@ -17,7 +18,8 @@ const paymentSchema = new Schema<IPayment>(
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: "usd" },
-    stripePaymentIntentId: String,
+    plan: { type: String, enum: ["MONTHLY", "YEARLY"] },
+    stripePaymentIntentId: { type: String, index: true },
     status: {
       type: String,
       enum: ["PENDING", "SUCCEEDED", "FAILED"],

@@ -27,4 +27,7 @@ const joinRequestSchema = new Schema<IJoinRequest>(
   { timestamps: true }
 );
 
+joinRequestSchema.index({ host: 1, createdAt: -1 });
+joinRequestSchema.index({ requester: 1, createdAt: -1 });
+
 export const JoinRequest = model<IJoinRequest>("JoinRequest", joinRequestSchema);

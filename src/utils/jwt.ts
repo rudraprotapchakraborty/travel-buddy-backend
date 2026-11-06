@@ -1,4 +1,4 @@
-import jwt, { SignOptions, Secret } from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { env } from "../config/env";
 
 export interface JwtPayload {
@@ -6,17 +6,13 @@ export interface JwtPayload {
   role: "USER" | "ADMIN";
 }
 
-const accessTokenSecret: Secret = env.JWT_ACCESS_SECRET;
+export const signAccessToken = (payload: JwtPayload): string =>
+  jwt.sign(payload, env.JWT_ACCESS_SECRET, {
+    expiresIn: env.JWT_ACCESS_EXPIRES_IN as SignOptions["expiresIn"],
+    algorithm: "HS256",
+  });
 
-export const signAccessToken = (payload: JwtPayload): string => {
-  const options: SignOptions = {
-    // cast because env.JWT_ACCESS_EXPIRES_IN is just string
-    expiresIn: env.JWT_ACCESS_EXPIRES_IN as unknown as SignOptions["expiresIn"],
-  };
-
-  return jwt.sign(payload, accessTokenSecret, options);
-};
-
-export const verifyAccessToken = (token: string): JwtPayload => {
-  return jwt.verify(token, accessTokenSecret) as JwtPayload;
-};
+export const verifyAccessToken = (token: string): JwtPayload =>
+  jwt.verify(token, env.JWT_ACCESS_SECRET, {
+    algorithms: ["HS256"],
+  }) as JwtPayload;
