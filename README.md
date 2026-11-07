@@ -1,191 +1,79 @@
-# Travel Buddy & Meetup — Backend
+<div align="center">
 
-Live URL: [https://travel-buddy-backend-y049.onrender.com/](https://travel-buddy-backend-y049.onrender.com/)
+# 🧳 Travel Buddy
 
----
+**Find travel companions, share trip plans and organise meetups.**
 
-## 🚀 Project Overview
+[**Live demo**](https://travel-buddy-frontend-qzgv.vercel.app/) · [Frontend](https://github.com/rudraprotapchakraborty/travel-buddy-frontend) · [Portfolio](https://rudraprotapchakraborty.com/projects)
 
-This repository contains the **backend** for the Travel Buddy & Meetup platform. The backend provides authentication, user & profile management, travel plan CRUD, matching/search, reviews, and payment integration endpoints which the frontend consumes.
+![Node.js](https://img.shields.io/badge/Node.js-3c873a?style=for-the-badge&logo=nodedotjs&logoColor=ffffff) ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=ffffff) ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=for-the-badge&logo=typescript&logoColor=ffffff) ![MongoDB](https://img.shields.io/badge/MongoDB-47a248?style=for-the-badge&logo=mongodb&logoColor=ffffff) ![Stripe](https://img.shields.io/badge/Stripe-635bff?style=for-the-badge&logo=stripe&logoColor=ffffff) ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=ffffff)
 
-> The server at the live URL responds with a basic health message: `Travel Buddy Backend Running.`
+<a href="https://travel-buddy-frontend-qzgv.vercel.app/"><img src="https://i.ibb.co/xqdgD8GH/travel-buddy.webp" alt="Travel Buddy: home page" width="880"></a>
 
----
+</div>
 
-## 🧭 API — High-level Endpoints (expected)
+> The REST API of **Travel Buddy**.
+>
+> - Post trip plans and search other trips by destination, dates and travel style
+> - Join requests that hosts accept or decline, with ratings and reviews after the trip
+> - Email-verified accounts, Google sign-in and a Stripe-paid verified plan
+> - Admin dashboard for members and trips
 
-These are the backend endpoints the frontend expects. Adjust or expand them to match your implementation.
+REST API for [Travel Buddy](https://travel-buddy-frontend-qzgv.vercel.app/) ([frontend repository](https://github.com/rudraprotapchakraborty/travel-buddy-frontend)): trip plans, matching, join requests, reviews, payments and accounts.
 
-| Method | Endpoint                      | Purpose                                                                           |
-| ------ | ----------------------------- | --------------------------------------------------------------------------------- |
-| POST   | `/api/auth/register`          | Register new user                                                                 |
-| POST   | `/api/auth/login`             | Login user (returns JWT or sets cookie)                                           |
-| GET    | `/api/users/:id`              | Get user profile                                                                  |
-| PATCH  | `/api/users/:id`              | Update profile                                                                    |
-| POST   | `/api/travel-plans`           | Create travel plan                                                                |
-| GET    | `/api/travel-plans`           | Get all travel plans                                                              |
-| GET    | `/api/travel-plans/:id`       | Get travel plan by id                                                             |
-| GET    | `/api/travel-plans/match`     | Search & match travelers (query params: destination, dateFrom, dateTo, interests) |
-| PATCH  | `/api/travel-plans/:id`       | Update travel plan                                                                |
-| DELETE | `/api/travel-plans/:id`       | Delete travel plan                                                                |
-| POST   | `/api/reviews`                | Add review                                                                        |
-| GET    | `/api/reviews/:userId`        | Get reviews for a user                                                            |
-| POST   | `/api/payments/create-intent` | Create payment intent (Stripe/other)                                              |
+## Features
 
----
+- **Trip plans** – create, read, update and delete plans; only the host (or an admin) can change one. Search by destination, dates and travel style, and a `/match` endpoint for suggestions
+- **Join requests** – send a request to a trip, hosts accept or decline, and members see their own requests
+- **Reviews** – list, create, edit and delete reviews; authors and admins can remove them
+- **Auth** – email and password with a six digit email code, Google ID-token sign-in, forgot and reset password
+- **Roles** – `USER` and `ADMIN`; the JWT is checked against the database on every request so blocks and role changes apply immediately
+- **Payments** – Stripe checkout for the verified plan, confirmed through a signed webhook
+- **Uploads** – profile photos through ImgBB
+- **Safety** – Helmet, CORS allow-list, rate limits, Zod validation on every write, locked-down shared test accounts
 
-## ⚙️ Recommended Tech Stack (replace if different)
+## API overview
 
-* **Runtime:** Node.js (v16+)
-* **Framework:** Express.js or Fastify
-* **Database:** MongoDB (Mongoose) or PostgreSQL (Prisma / TypeORM)
-* **Authentication:** JWT (access & refresh tokens) or session cookies
-* **Storage:** Cloudinary / S3 for images
-* **Payments:** Stripe (recommended) or local gateway
-* **Deployment:** Render / Heroku / Vercel (server) — currently deployed on Render.
+Everything lives under `/api`. Protected routes need `Authorization: Bearer <token>`.
 
-> If your project uses a different stack, swap these sections and examples accordingly.
+| Area | Routes |
+| --- | --- |
+| Auth | `POST /auth/register`, `/login`, `/google`, `/verify-email`, `/resend-otp`, `/forgot-password`, `/reset-password`; `GET /auth/demo-accounts` |
+| Users | `GET /users/me/self`, `GET /users/me/methods`, profile, email, password and delete endpoints |
+| Travel plans | `POST /travel-plans`, `GET /travel-plans`, `/me`, `/match`, `/:id`, `PATCH` and `DELETE /:id` |
+| Join requests | `POST` a request, `GET /join-requests/me`, `GET /join-requests/host`, accept or decline |
+| Reviews | `GET /reviews`, `POST`, `DELETE /reviews/:id` |
+| Payments | create a Stripe payment, webhook |
+| Admin | members, trips and reviews management |
+| Public | `GET /public/stats` |
 
----
-
-## 🔐 Authentication & Roles
-
-* Register and login endpoints should issue a JWT (or set an HttpOnly cookie) for secure authentication.
-* Roles: `user` and `admin`. Protect admin routes with role-check middleware.
-* Passwords must be hashed using bcrypt (or an equivalent secure hashing function).
-
----
-
-## 🧾 Environment Variables
-
-Create a `.env` file in the project root. Example variables (edit to match your code):
-
-```bash
-PORT=5000
-NODE_ENV=development
-MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/travel-buddy
-JWT_SECRET=your_jwt_secret_here
-JWT_EXPIRES_IN=7d
-CLOUDINARY_URL=cloudinary://<key>:<secret>@<cloud_name>
-STRIPE_SECRET_KEY=sk_test_...
-FRONTEND_URL=https://travel-buddy-frontend-lake.vercel.app
-```
-
-> Only add variables your code actually uses. Never commit `.env` to source control.
-
----
-
-## 🛠️ Local Setup & Development
-
-1. Clone the repo:
-
-```bash
-git clone <repo-url>
-cd travel-buddy-backend
-```
-
-2. Install dependencies:
+## Run it locally
 
 ```bash
 npm install
-# or
-pnpm install
-# or
-yarn
+cp .env.example .env     # fill in the values
+npm run seed             # demo accounts and sample trips
+npm run dev              # http://localhost:5000
 ```
 
-3. Create `.env` using the example above.
+`npm run seed:clear` removes the demo data again. A Postman collection (`travel-buddy-backend.postman_collection.json`) is included.
 
-4. Start the dev server:
+### Environment (`.env`, git-ignored)
 
-```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
-```
+`PORT`, `MONGODB_URI`, `MONGODB_DB`, `JWT_ACCESS_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `CLIENT_URL` (allowed browser origins), `GOOGLE_CLIENT_ID`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SMTP_*` / `MAIL_FROM` or `RESEND_API_KEY`, `IMGBB_API_KEY`, `CONTACT_EMAIL`.
 
-The health endpoint is available at: `https://travel-buddy-backend-y049.onrender.com/` and should return a simple success message.
+## Scripts
+
+`npm run dev` · `npm run build` · `npm start` · `npm run typecheck` · `npm run seed` · `npm run seed:clear`
+
+## Deploying
+
+Deploys to Vercel through `api/index.ts`. Set the variables above and point `CLIENT_URL` at the frontend.
 
 ---
 
-## 🧩 Database & Migrations
+<div align="center">
 
-* For MongoDB: ensure `MONGO_URI` points to a running MongoDB cluster. Use Mongoose models in `/src/models`.
-* For SQL (Postgres): set `DATABASE_URL` and use Prisma or TypeORM with migration scripts. Example for Prisma:
+Made by **[Rudra Protap Chakraborty](https://rudraprotapchakraborty.com)** · [Portfolio](https://rudraprotapchakraborty.com) · [GitHub](https://github.com/rudraprotapchakraborty)
 
-```bash
-npx prisma migrate dev --name init
-```
-
----
-
-## 🔁 Sample Requests
-
-Below are example `curl` requests. Adapt headers/token locations to your auth implementation.
-
-**Register**
-
-```bash
-curl -X POST https://travel-buddy-backend-y049.onrender.com/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{ "name": "Alice", "email": "alice@example.com", "password": "Passw0rd" }'
-```
-
-**Login**
-
-```bash
-curl -X POST https://travel-buddy-backend-y049.onrender.com/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{ "email": "alice@example.com", "password": "Passw0rd" }'
-```
-
-**Create travel plan** (requires auth token)
-
-```bash
-curl -X POST https://travel-buddy-backend-y049.onrender.com/api/travel-plans \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{ "destination": "Kathmandu, Nepal", "startDate": "2026-03-15", "endDate": "2026-03-22", "budget": "500-1000", "travelType": "Solo" }'
-```
-
----
-
-## ✅ Testing
-
-* Add unit tests (Jest) for controllers and integration tests for routes.
-* For end-to-end testing consider using Supertest + an in-memory DB (e.g., MongoDB Memory Server) to avoid touching production data.
-
----
-
-## 🔒 Security Best Practices
-
-* Use HttpOnly secure cookies or rotating refresh tokens for authentication to reduce XSS/CSRF risk.
-* Rate-limit auth endpoints.
-* Validate and sanitize all incoming data.
-* Store secrets in Render/Cloud provider environment settings, not in the repo.
-
----
-
-## 📦 Deployment (Render)
-
-Example steps to deploy on Render (you already have a live URL):
-
-1. Connect repository to Render.
-2. Set environment variables in the Render dashboard.
-3. Provide a start command such as `npm start` and choose your `PORT` if needed.
-4. Enable automatic deploys from your main branch.
-
----
-
-## 🤝 Contributing
-
-Happy to accept contributions. Suggested flow:
-
-1. Fork & create a feature branch.
-2. Open PR with description and linked issue.
-
-**Contact / Author**
-
-Rudra Protap Chakraborty
+</div>

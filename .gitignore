@@ -60,3 +60,5 @@ desktop.ini
 
 # Local environment data
 .env.*
+
+!.env.example
